@@ -21,11 +21,11 @@
     function waitForZoomSdk() {
         debug('Checking for ZoomSdk...');
         
-        if (typeof ZoomSdk !== 'undefined') {
-            debug('ZoomSdk found! Initializing...');
+        if (typeof zoomSdk !== 'undefined') {
+            debug('zoomSdk found! Initializing...');
             initZoomApp();
         } else {
-            debug('ZoomSdk not found, retrying...');
+            debug('zoomSdk not found, retrying...');
             setTimeout(waitForZoomSdk, 200);
         }
     }
@@ -33,8 +33,8 @@
     // Initialize Zoom App
     async function initZoomApp() {
         try {
-            debug('Creating ZoomSdk instance...');
-            appState.sdk = new ZoomSdk();
+            debug('Creating zoomSdk instance...');
+            appState.sdk = zoomSdk;
             
             debug('Configuring SDK...');
             const configResponse = await appState.sdk.config({
