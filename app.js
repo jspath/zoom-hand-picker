@@ -129,5 +129,16 @@ function updateUI() {
 document.getElementById('pickBtn').addEventListener('click', pickRandomPerson);
 document.getElementById('refreshBtn').addEventListener('click', fetchParticipants);
 
+// Wait for both DOM and Zoom SDK to load
+function waitForZoomSdk() {
+    if (typeof ZoomSdk !== 'undefined') {
+        console.log('Zoom SDK loaded successfully');
+        initZoomApp();
+    } else {
+        console.log('Waiting for Zoom SDK...');
+        setTimeout(waitForZoomSdk, 100);
+    }
+}
+
 // Initialize on load
-window.addEventListener('DOMContentLoaded', initZoomApp);
+window.addEventListener('DOMContentLoaded', waitForZoomSdk);
