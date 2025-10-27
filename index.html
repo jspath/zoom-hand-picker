@@ -130,12 +130,23 @@
             border-radius: 8px;
             margin-bottom: 20px;
         }
+        .debug {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>✋ Random Hand Picker</h1>
         <p style="color: #666; margin-top: 0;">Randomly select from raised hands</p>
+        
+        <div id="debug" class="debug"></div>
         
         <div id="status" class="status disconnected">
             Connecting to Zoom...
@@ -165,17 +176,6 @@
     </div>
     
     <script src="https://appssdk.zoom.us/sdk.min.js"></script>
-    <script>
-        // Wait for SDK to load before initializing
-        window.addEventListener('load', function() {
-            console.log('Window loaded, ZoomSdk available:', typeof ZoomSdk !== 'undefined');
-            if (typeof ZoomSdk === 'undefined') {
-                console.error('ZoomSdk not loaded!');
-                document.getElementById('status').textContent = 'Failed to load Zoom SDK';
-                document.getElementById('status').className = 'status disconnected';
-            }
-        });
-    </script>
     <script src="app.js"></script>
 </body>
 </html>
