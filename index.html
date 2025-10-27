@@ -165,6 +165,17 @@
     </div>
     
     <script src="https://appssdk.zoom.us/sdk.min.js"></script>
+    <script>
+        // Wait for SDK to load before initializing
+        window.addEventListener('load', function() {
+            console.log('Window loaded, ZoomSdk available:', typeof ZoomSdk !== 'undefined');
+            if (typeof ZoomSdk === 'undefined') {
+                console.error('ZoomSdk not loaded!');
+                document.getElementById('status').textContent = 'Failed to load Zoom SDK';
+                document.getElementById('status').className = 'status disconnected';
+            }
+        });
+    </script>
     <script src="app.js"></script>
 </body>
 </html>
