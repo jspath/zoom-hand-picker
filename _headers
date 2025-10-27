@@ -1,0 +1,5 @@
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+Content-Security-Policy: default-src 'self' https://appssdk.zoom.us https://zoom.us; script-src 'self' 'unsafe-inline' https://appssdk.zoom.us; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://zoom.us https://*.zoom.us
+Referrer-Policy: strict-origin-when-cross-origin
+X-Frame-Options: ALLOW-FROM https://zoom.us
