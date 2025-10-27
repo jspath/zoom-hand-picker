@@ -1,23 +1,46 @@
-let zoomSdk;
+let zoomSdk = null;
 let participants = [];
 let isConnected = false;
+
+// Debug logging
+function debug(message) {
+    console.log(message);
+    const debugEl = document.getElementById('debug');
+    if (debugEl) {
+        debugEl.textContent = message;
+    }
+}
+
+// Wait for Zoom SDK to be available
+function waitForZoomSdk() {
+    debug('Checking for ZoomSdk...');
+    
+    if (typeof ZoomSdk !== 'undefined') {
+        debug('ZoomSdk found! Initializing...');
+        initZoomApp();
+    } else {
+        debug('ZoomSdk not found, retrying...');
+        setTimeout(waitForZoomSdk, 200);
+    }
+}
 
 // Initialize Zoom App
 async function initZoomApp() {
     try {
-        // Create Zoom SDK instance
+        debug('Creating ZoomSdk instance...');
         zoomSdk = new ZoomSdk();
         
-        // Configure SDK with required capabilities
+        debug('Configuring SDK...');
         const configResponse = await zoomSdk.config({
             capabilities: [
                 'getMeetingParticipants',
                 'onParticipantChange'
-            ],
-            version: '0.16.0'
+            ]
         });
         
-        console.log('Zoom SDK configured:', configResponse);
+        debug('SDK configured successfully!');
+        console.log('Config response:', configResponse);
+        
         updateStatus(true, 'Connected to Zoom');
         isConnected = true;
         
@@ -32,7 +55,7 @@ async function initZoomApp() {
         
     } catch (error) {
         console.error('Failed to initialize Zoom SDK:', error);
-        console.error('Error details:', error.message, error.stack);
+        debug('Error: ' + error.message);
         updateStatus(false, 'Failed to connect to Zoom');
         showError('Could not connect to Zoom. Error: ' + error.message);
     }
@@ -40,23 +63,26 @@ async function initZoomApp() {
 
 // Fetch meeting participants
 async function fetchParticipants() {
-    if (!zoomSdk) return;
+    if (!zoomSdk) {
+        debug('Cannot fetch participants - SDK not initialized');
+        return;
+    }
     
     try {
+        debug('Fetching participants...');
         const response = await zoomSdk.getMeetingParticipants();
+        console.log('Participants response:', response);
+        
         participants = response.participants || [];
+        debug(`Found ${participants.length} participants`);
+        
         updateUI();
         hideError();
     } catch (error) {
         console.error('Failed to fetch participants:', error);
-        showError('Could not fetch participants. Please try refreshing.');
+        debug('Fetch error: ' + error.message);
+        showError('Could not fetch participants: ' + error.message);
     }
-}
-
-// Handle participant changes in real-time
-function handleParticipantChange(event) {
-    console.log('Participant change:', event);
-    fetchParticipants();
 }
 
 // Pick a random person with hand raised
@@ -78,31 +104,40 @@ function pickRandomPerson() {
 // Update status indicator
 function updateStatus(connected, message) {
     const statusEl = document.getElementById('status');
-    statusEl.textContent = message;
-    statusEl.className = `status ${connected ? 'connected' : 'disconnected'}`;
+    if (statusEl) {
+        statusEl.textContent = message;
+        statusEl.className = `status ${connected ? 'connected' : 'disconnected'}`;
+    }
 }
 
 // Show error message
 function showError(message) {
     const errorEl = document.getElementById('error');
-    errorEl.textContent = message;
-    errorEl.style.display = 'block';
+    if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+    }
 }
 
 // Hide error message
 function hideError() {
-    document.getElementById('error').style.display = 'none';
+    const errorEl = document.getElementById('error');
+    if (errorEl) {
+        errorEl.style.display = 'none';
+    }
 }
 
 // Display selected user
 function displaySelectedUser(user) {
     const selectedEl = document.getElementById('selectedUser');
-    selectedEl.innerHTML = `
-        <h2>Call on:</h2>
-        <div class="name">${user.displayName}</div>
-    `;
-    selectedEl.className = 'selected-user';
-    selectedEl.style.display = 'block';
+    if (selectedEl) {
+        selectedEl.innerHTML = `
+            <h2>Call on:</h2>
+            <div class="name">${user.displayName}</div>
+        `;
+        selectedEl.className = 'selected-user';
+        selectedEl.style.display = 'block';
+    }
 }
 
 // Update the entire UI
@@ -110,35 +145,51 @@ function updateUI() {
     const raisedHandsCount = participants.filter(p => p.bRaiseHand).length;
     
     // Update hand count
-    document.getElementById('handCount').textContent = raisedHandsCount;
+    const handCountEl = document.getElementById('handCount');
+    if (handCountEl) {
+        handCountEl.textContent = raisedHandsCount;
+    }
     
     // Enable/disable pick button
-    document.getElementById('pickBtn').disabled = raisedHandsCount === 0;
+    const pickBtn = document.getElementById('pickBtn');
+    if (pickBtn) {
+        pickBtn.disabled = raisedHandsCount === 0;
+    }
     
     // Update participants list
     const participantsEl = document.getElementById('participants');
-    participantsEl.innerHTML = participants.map(p => `
-        <div class="participant ${p.bRaiseHand ? 'hand-raised' : 'normal'}">
-            <span>${p.displayName}</span>
-            ${p.bRaiseHand ? '<span>✋</span>' : ''}
-        </div>
-    `).join('');
-}
-
-// Event listeners
-document.getElementById('pickBtn').addEventListener('click', pickRandomPerson);
-document.getElementById('refreshBtn').addEventListener('click', fetchParticipants);
-
-// Wait for both DOM and Zoom SDK to load
-function waitForZoomSdk() {
-    if (typeof ZoomSdk !== 'undefined') {
-        console.log('Zoom SDK loaded successfully');
-        initZoomApp();
-    } else {
-        console.log('Waiting for Zoom SDK...');
-        setTimeout(waitForZoomSdk, 100);
+    if (participantsEl) {
+        participantsEl.innerHTML = participants.map(p => `
+            <div class="participant ${p.bRaiseHand ? 'hand-raised' : 'normal'}">
+                <span>${p.displayName}</span>
+                ${p.bRaiseHand ? '<span>✋</span>' : ''}
+            </div>
+        `).join('');
     }
 }
 
-// Initialize on load
-window.addEventListener('DOMContentLoaded', waitForZoomSdk);
+// Event listeners - set up after DOM is loaded
+function setupEventListeners() {
+    const pickBtn = document.getElementById('pickBtn');
+    if (pickBtn) {
+        pickBtn.addEventListener('click', pickRandomPerson);
+    }
+    
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', fetchParticipants);
+    }
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        debug('DOM loaded');
+        setupEventListeners();
+        waitForZoomSdk();
+    });
+} else {
+    debug('DOM already loaded');
+    setupEventListeners();
+    waitForZoomSdk();
+}
