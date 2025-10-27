@@ -9,15 +9,15 @@ async function initZoomApp() {
         zoomSdk = new ZoomSdk();
         
         // Configure SDK with required capabilities
-        await zoomSdk.config({
+        const configResponse = await zoomSdk.config({
             capabilities: [
                 'getMeetingParticipants',
-                'getMeetingContext',
                 'onParticipantChange'
             ],
             version: '0.16.0'
         });
         
+        console.log('Zoom SDK configured:', configResponse);
         updateStatus(true, 'Connected to Zoom');
         isConnected = true;
         
@@ -25,12 +25,16 @@ async function initZoomApp() {
         await fetchParticipants();
         
         // Listen for participant changes
-        zoomSdk.addEventListener('onParticipantChange', handleParticipantChange);
+        zoomSdk.onParticipantChange((event) => {
+            console.log('Participant change:', event);
+            fetchParticipants();
+        });
         
     } catch (error) {
         console.error('Failed to initialize Zoom SDK:', error);
+        console.error('Error details:', error.message, error.stack);
         updateStatus(false, 'Failed to connect to Zoom');
-        showError('Could not connect to Zoom. Make sure you are running this in a Zoom meeting.');
+        showError('Could not connect to Zoom. Error: ' + error.message);
     }
 }
 
